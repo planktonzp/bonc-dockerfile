@@ -1,4 +1,5 @@
 FROM alpine:3.5
+MAINTAINER Dipper Roy<ruizhipeng001@gmail.com>
 
 ENV NPM_CONFIG_LOGLEVEL info
 ENV NODE_VERSION 7.9.0
