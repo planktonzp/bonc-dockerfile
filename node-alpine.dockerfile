@@ -33,7 +33,7 @@ RUN addgroup -g 1000 node \
 
 ENV YARN_VERSION 0.22.0
 
-RUN apk add --no-cache --virtual .build-deps-yarn curl gnupg \
+RUN apk add --no-cache --virtual .build-deps-yarn curl \
   && curl -fSL -o yarn.js "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-legacy-$YARN_VERSION.js" \
   && mv yarn.js /usr/local/bin/yarn \
   && chmod +x /usr/local/bin/yarn \
