@@ -1,0 +1,1 @@
+kubernetes 1.6版本下利用statefulset进行zookeeper集群部署搭建
