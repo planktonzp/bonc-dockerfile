@@ -1,0 +1,76 @@
+piVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: dipper
+spec:
+  ports:
+  - port: 9092
+  selector:
+    app: kafka
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: broker
+  namespace: dipper
+  labels:
+    app: broker
+spec:
+  ports:
+  - port: 9092
+  # [podname].broker.kafka.svc.cluster.local
+  clusterIP: None
+  selector:
+    app: kafka
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: kafka-budget
+  namespace: dipper
+spec:
+  selector:
+    matchLabels:
+      app: kafka
+  minAvailable: 2
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: dipper
+spec:
+  serviceName: "broker"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: broker
+        # image: solsson/kafka-persistent:0.10.1
+        image: dipperroy/kafka:0.10.2.1-alpine
+        ports:
+        - containerPort: 9092
+        command:
+        - sh
+        - -c
+        - "./bin/kafka-server-start.sh config/server.properties --override broker.id=$(hostname | awk -F'-' '{print $2}')"
+        volumeMounts:
+        - name: kafkadir
+          mountPath: /opt/kafka/data
+  volumeClaimTemplates:
+  - metadata:
+      name: kafkadir
+      namespace: dipper
+    spec:
+      accessModes:
+        - ReadWriteOnce
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: ceph-rbd
