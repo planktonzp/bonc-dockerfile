@@ -1,3 +1,5 @@
+---
+# cluster Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -9,6 +11,7 @@ spec:
   selector:
     app: kafka
 ---
+# cluster DNS
 apiVersion: v1
 kind: Service
 metadata:
@@ -23,17 +26,6 @@ spec:
   clusterIP: None
   selector:
     app: kafka
----
-apiVersion: policy/v1beta1
-kind: PodDisruptionBudget
-metadata:
-  name: kafka-budget
-  namespace: dipper
-spec:
-  selector:
-    matchLabels:
-      app: kafka
-  minAvailable: 2
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet

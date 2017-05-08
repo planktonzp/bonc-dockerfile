@@ -1,0 +1,2 @@
+export KUBECONFIG=$HOME/admin.conf
+export KUBE_COMPONENT_LOGLEVEL='--v=0'

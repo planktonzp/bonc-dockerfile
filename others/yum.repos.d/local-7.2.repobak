@@ -1,0 +1,5 @@
+[local_7.2]
+name=local_7.2
+baseurl=http://172.16.13.1/Centos7.2/1/
+enabled=0
+gpgcheck=0
