@@ -40,10 +40,21 @@ spec:
       labels:
         app: kafka
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - broker
+              topologyKey: "kubernetes.io/hostname"
       terminationGracePeriodSeconds: 10
       containers:
       - name: broker
-        image: solsson/kafka-persistent:0.10.1
+        #image: solsson/kafka-persistent:0.10.1
+        image: dipperroy/kafka:0.10.2.1-alpine
         ports:
         - containerPort: 9092
         command:

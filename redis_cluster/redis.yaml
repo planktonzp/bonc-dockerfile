@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: redis
+  namespace: default
+  labels:
+    app: redis
+spec:
+  ports:
+  - port: 6379
+    name: peer
+  - port: 16379
+    name: cluster
+  # *.redis.default.svc.cluster.local
+  clusterIP: None
+  selector:
+    app: redis
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-conf
+  namespace: default
+  labels:
+    app: redis
+data:
+  cluster.conf: |+
+    port 6379
+    appendonly yes
+    cluster-enabled yes
+    cluster-config-file /var/lib/redis/nodes.conf
+    cluster-node-timeout 5000
+    dir /var/lib/redis
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: default
+spec:
+  serviceName: redis
+  replicas: 7
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: node
+    spec:
+      containers:
+        - name: redis
+          image: dipperroy/redis:3.2.6
+          imagePullPolicy: Always
+          args:
+            - "redis-server"
+            - "/etc/redis/cluster.conf"
+            - "--protected-mode"
+            - "no"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: "TCP"
+            - name: cluster
+              containerPort: 16379
+              protocol: "TCP"
+          volumeMounts:
+            - name: "conf"
+              mountPath: "/etc/redis"
+            - name: "data"
+              mountPath: "/var/lib/redis"
+        - name: "cluster-meet"
+          image: dipperroy/redis:3.2.6
+          imagePullPolicy: Always
+          command:
+          - bash
+          - "-c"
+          - |
+            set -e
+            peer-finder -on-start="/usr/local/bin/cluster-meet.sh" -service=redis -ns=default
+            sleep infinity
+      volumes:
+        - name: "data"
+          persistentVolumeClaim:
+            claimName: "data"
+        - name: "conf"
+          configMap:
+            name: "redis-conf"
+            items:
+              - key: cluster.conf
+                path: cluster.conf
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      namespace: default
+    spec:
+      accessModes:
+        - ReadWriteOnce
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: ceph-rbd

@@ -44,7 +44,8 @@ RUN set -ex \
 	\
 	&& apk del .build-deps
 
-RUN mkdir /data && chown redis:redis /data
+RUN mkdir /data && chown redis:redis /data \
+ && apk add --no-cache --update-cache bash
 VOLUME /data
 WORKDIR /data
 
