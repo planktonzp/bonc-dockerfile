@@ -7,6 +7,7 @@ metadata:
   annotations:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
   name: redis-cluster
+  namespace: dipper
   labels:
     app: redis-cluster
 spec:
@@ -29,6 +30,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: redis-cluster-config
+  namespace: dipper
 data:
   redis.conf: |+
     cluster-enabled yes
@@ -36,58 +38,77 @@ data:
     cluster-node-timeout 15000
     cluster-config-file nodes.conf
     cluster-migration-barrier 1 
+    activerehashing yes
     appendonly yes
-    # Other cluster members need to be able to connect
+    appendfsync everysec
+    hash-max-ziplist-entries 128
+    hash-max-ziplist-value 1024
+    slave-read-only yes
+    stop-writes-on-bgsave-error no
+    loglevel notice
     protected-mode no
-#
-# A script to bootstrap Stateful Set members as they initialize
-# TODO: Move this logic into a separate Docker image. We shouldn't be doing this kind of hackery here.
-#
+    databases 16
+    maxmemory-policy volatile-lru
+    maxmemory-samples 5
+    dbfilename dump.rdb
+    dir /var/lib/redis
   bootstrap-pod.sh: |+
-    #!/bin/sh
+    #!/bin/bash
     set -e
 
-    # Find which member of the Stateful Set this pod is running
-    # e.g. "redis-cluster-0" -> "0"
-    PET_ORDINAL=$(cat /etc/podinfo/pod_name | rev | cut -d- -f1)
+    PORT=6379
+    CLUSTER_IPS=""
 
-    redis-server /conf/redis.conf
-#    redis-server /conf/redis.conf &
-#    # Discover peers
-#    # wget https://storage.googleapis.com/kubernetes-release/pets/peer-finder -O /bin/peer-finder
-#    chmod u+x /bin/peer-finder
-#    peer-finder -on-start 'tee > /conf/initial_peers' -service redis-cluster -ns $POD_NAMESPACE
-#
-#    # TODO: Wait until redis-server process is ready
-#    sleep 1
-#
-#    if [ $PET_ORDINAL = "0" ]; then
-#      # The first member of the cluster should control all slots initially
-#      redis-cli cluster addslots $(seq 0 16383)
-#    else
-#      # Other members of the cluster join as slaves
-#      # TODO: Get list of peers using the peer finder using an init container
-#      PEER_IP=$(perl -MSocket -e 'print inet_ntoa(scalar(gethostbyname("redis-cluster-0.redis-cluster.default.svc.cluster.local")))')
-#      redis-cli cluster meet $PEER_IP 6379
-#      sleep 1
-#
-#      #echo redis-cli --csv cluster slots
-#      #redis-cli --csv cluster slots
-#
-#      # Become the slave of a random master node
-#      MASTER_ID=$(redis-cli --csv -h $PEER_IP cluster slots | cut -d, -f 5 | sed -e 's/^"//'  -e 's/"$//')
-#      redis-cli cluster replicate $MASTER_ID
-#    fi
-#
-#    wait
+
+    redis-server /conf/redis.conf &
+    chmod u+x /bin/peer-finder
+    chmod u+x /usr/local/bin/redis-trib.rb
+    chmod u+x /conf/meet-cluster.sh
+    peer-finder -on-start '/conf/meet-cluster.sh' -service redis-cluster -ns $POD_NAMESPACE
+
+    sleep 1
+    wait
+  meet-cluster.sh: |+
+    #!/bin/bash
+    
+    set -e
+    
+    PORT=6379
+    CLUSTER_IPS=""
+
+    CLUSTER_BUILDER=$(getent hosts redis-cluster-5.redis-cluster.dipper.svc.cluster.local|awk {'print $1'})
+    MASTEROFSLAVE=$(getent hosts redis-cluster-$(expr $(cat /etc/podinfo/pod_name | rev | cut -d- -f1) - 1).redis-cluster.dipper.svc.cluster.local|awk {'print $1'})
+
+    PET_ORDINAL=$(cat /etc/podinfo/pod_name | rev | cut -d- -f1)
+    if [[ $PET_ORDINAL == 5 ]]; then
+      echo "creating cluster..."
+      while read -ra LINE; do
+        CLUSTER_IPS="${CLUSTER_IPS} $(getent hosts ${LINE} | cut -d ' ' -f1):${PORT}"
+      done
+      until redis-cli -h 127.0.0.1 ping; do sleep 1; done
+      echo yes | /usr/local/bin/redis-trib.rb create --replicas 1 ${CLUSTER_IPS}
+    elif [[ $PET_ORDINAL -gt 5 ]]; then
+      echo "add new node..."
+      if [[ $(expr $PET_ORDINAL % 2) == 0 ]]; then
+        echo "add as a master node..."
+        /usr/local/bin/redis-trib.rb add-node $(getent hosts $(hostname)|awk {'print $1'}):$PORT $CLUSTER_BUILDER:$PORT
+      else
+        echo "add slave for the new master..."
+        /usr/local/bin/redis-trib.rb add-node --slave $(getent hosts $(hostname)|awk {'print $1'}):$PORT $MASTEROFSLAVE:$PORT
+        /usr/local/bin/redis-trib.rb rebalance --use-empty-masters $CLUSTER_BUILDER:$PORT
+      fi
+    else
+      echo "cluster too small"
+    fi
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
   name: redis-cluster
+  namespace: dipper
 spec:
   serviceName: redis-cluster
-  replicas: 6
+  replicas: 8
   template:
     metadata:
       labels:
@@ -102,8 +123,7 @@ spec:
       #hostNetwork: true
       containers:
       - name: redis-cluster
-        image: redis:3.2.1
-        #image: dipperroy/redis:3.2.8
+        image: dipperroy/redis:3.2.8-rb
         ports:
         - containerPort: 6379
           name: client
@@ -139,6 +159,9 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         volumeMounts:
+        - name: data
+          mountPath: /var/lib/redis
+          readOnly: false
         - name: conf
           mountPath: /conf
           readOnly: false
@@ -146,6 +169,9 @@ spec:
           mountPath: /etc/podinfo
           readOnly: false
       volumes:
+      - name: "data"
+        persistentVolumeClaim:
+          claimName: "data"
       # Insert our pre-baked Redis configuration file into /conf/redis.conf
       - name: conf
         configMap:
@@ -155,6 +181,8 @@ spec:
             path: redis.conf
           - key: bootstrap-pod.sh  # TODO: Move this or extract it into its own Docker image
             path: bootstrap-pod.sh
+          - key: meet-cluster.sh
+            path: meet-cluster.sh
       # The init container will use this info to find cluster peers
       - name: podinfo
         downwardAPI:
@@ -171,3 +199,16 @@ spec:
             - path: "pod_namespace"
               fieldRef:
                 fieldPath: metadata.namespace
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      namespace: dipper
+    spec:
+      accessModes:
+        - ReadWriteOnce
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: ceph-rbd
+
