@@ -77,11 +77,12 @@ data:
     CLUSTER_IPS=""
 
     CLUSTER_BUILDER=$(getent hosts redis-cluster-5.redis-cluster.dipper.svc.cluster.local|awk {'print $1'})
-    MASTEROFSLAVE=$(getent hosts redis-cluster-$(expr $(cat /etc/podinfo/pod_name | rev | cut -d- -f1) - 1).redis-cluster.dipper.svc.cluster.local|awk {'print $1'})
 
     PET_ORDINAL=$(cat /etc/podinfo/pod_name | rev | cut -d- -f1)
+    sleep 10
     if [[ $PET_ORDINAL == 5 ]]; then
       echo "creating cluster..."
+      sleep 10
       while read -ra LINE; do
         CLUSTER_IPS="${CLUSTER_IPS} $(getent hosts ${LINE} | cut -d ' ' -f1):${PORT}"
       done
@@ -89,12 +90,14 @@ data:
       echo yes | /usr/local/bin/redis-trib.rb create --replicas 1 ${CLUSTER_IPS}
     elif [[ $PET_ORDINAL -gt 5 ]]; then
       echo "add new node..."
+      sleep 10
       if [[ $(expr $PET_ORDINAL % 2) == 0 ]]; then
         echo "add as a master node..."
         /usr/local/bin/redis-trib.rb add-node $(getent hosts $(hostname)|awk {'print $1'}):$PORT $CLUSTER_BUILDER:$PORT
       else
         echo "add slave for the new master..."
-        /usr/local/bin/redis-trib.rb add-node --slave $(getent hosts $(hostname)|awk {'print $1'}):$PORT $MASTEROFSLAVE:$PORT
+        /usr/local/bin/redis-trib.rb add-node --slave $(getent hosts $(hostname)|awk {'print $1'}):$PORT $CLUSTER_BUILDER:$PORT
+        echo $CLUSTER_BUILDER
         /usr/local/bin/redis-trib.rb rebalance --use-empty-masters $CLUSTER_BUILDER:$PORT
       fi
     else
