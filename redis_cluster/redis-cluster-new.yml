@@ -76,39 +76,18 @@ data:
     PORT=6379
     CLUSTER_IPS=""
 
-    #CLUSTER_BUILDER=$(getent hosts redis-cluster-5.redis-cluster.dipper.svc.cluster.local|awk {'print $1'})
+    CLUSTER_BUILDER=$(getent hosts redis-cluster-5.redis-cluster.dipper.svc.cluster.local|awk {'print $1'})
 
     PET_ORDINAL=$(cat /etc/podinfo/pod_name | rev | cut -d- -f1)
     sleep 10
     if [[ $PET_ORDINAL == 7 ]]; then
       echo "creating cluster..."
-      sleep 5
-      while read -ra LINE
-      do
-        echo "check cluster node ..."
-        for PEER_IP in $(getent hosts ${LINE} | cut -d ' ' -f1)
-        do
-          if [[ $(redis-cli -h $PEER_IP ping) == PONG ]]
-          then
-            return 0
-          fi
-        done
+      sleep 10
+      while read -ra LINE; do
         CLUSTER_IPS="${CLUSTER_IPS} $(getent hosts ${LINE} | cut -d ' ' -f1):${PORT}"
       done
       until redis-cli -h 127.0.0.1 ping; do sleep 1; done
       echo yes | /usr/local/bin/redis-trib.rb create --replicas 1 ${CLUSTER_IPS}
-#    elif [[ $PET_ORDINAL -gt 5 ]]; then
-#      echo "add new node..."
-#      sleep 10
-#      if [[ $(expr $PET_ORDINAL % 2) == 0 ]]; then
-#        echo "add as a master node..."
-#        /usr/local/bin/redis-trib.rb add-node $(getent hosts $(hostname)|awk {'print $1'}):$PORT $CLUSTER_BUILDER:$PORT
-#      else
-#        echo "add slave for the new master..."
-#        /usr/local/bin/redis-trib.rb add-node --slave $(getent hosts $(hostname)|awk {'print $1'}):$PORT $CLUSTER_BUILDER:$PORT
-#        echo $CLUSTER_BUILDER
-#        /usr/local/bin/redis-trib.rb rebalance --use-empty-masters $CLUSTER_BUILDER:$PORT
-#      fi
     else
       echo "cluster too small"
     fi
@@ -126,6 +105,7 @@ spec:
       labels:
         app: redis-cluster
       annotations:
+        # NOTE: Init container must be idempotent
         # Add a baked-in Redis config file that enables cluster mode
         #pod.alpha.kubernetes.io/init-containers: '[
         #]'
@@ -144,23 +124,26 @@ spec:
         - sh
         args:
         - /conf/bootstrap-pod.sh
-       # readinessProbe:
-       #   exec:
-       #     command:
-       #     - sh
-       #     - -c
-       #     - "redis-cli -h $(hostname) ping"
-       #   initialDelaySeconds: 15
-       #   timeoutSeconds: 5
+        # Ensure that Redis is online before initializing the next node.
+        # TODO: Test that the cluster node is init'd properly.
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "redis-cli -h $(hostname) ping"
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
 
-       # livenessProbe:
-       #   exec:
-       #     command:
-       #     - sh
-       #     - -c
-       #     - "redis-cli -h $(hostname) ping"
-       #   initialDelaySeconds: 20
-       #   periodSeconds: 3
+        # Mark a node as down if Redis server stops running
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "redis-cli -h $(hostname) ping"
+          initialDelaySeconds: 30
+          periodSeconds: 8
         env:
         - name: POD_NAMESPACE
           valueFrom:
