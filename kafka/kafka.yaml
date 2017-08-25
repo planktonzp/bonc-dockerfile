@@ -27,6 +27,13 @@ spec:
   selector:
     app: kafka
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cluster-config
+  namespace: dipper
+data:
+---
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
