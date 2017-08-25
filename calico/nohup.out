@@ -1,0 +1,80 @@
+F0714 21:07:27.737829   18545 proxy.go:153] listen tcp 0.0.0.0:23333: bind: address already in use
+Starting to serve on [::]:23333Starting to serve on [::]:23333Starting to serve on [::]:23333I0717 14:01:33.612226    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:01:33.612510    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:01:33.612619    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:01:33.612663    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:01:33.612725    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:01:33.612785    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:01:33.612857    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:01:33.612908    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:01:33.612951    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:01:33.613029    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:03:08.585960    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:03:08.586046    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:03:08.586094    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:03:08.586157    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:03:08.586210    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:03:08.586277    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:03:08.586332    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:03:08.586375    9936 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled
+I0717 14:04:32.082710    9936 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0717 14:04:32.082775    9936 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0717 14:09:32.083619    9936 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:09:32.085290    9936 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+Starting to serve on [::]:23333I0717 14:34:09.280248    6635 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0717 14:34:09.280528    6635 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0717 14:39:09.280744    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:39:09.282657    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:44:09.281020    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:44:09.284602    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:49:09.281430    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:49:09.286733    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:54:09.281961    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:54:09.289029    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:59:09.282360    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 14:59:09.290452    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:04:09.282631    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:04:09.292434    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:09:09.282973    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:09:09.294249    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:09:47.990366    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:09:51.463408    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:14:09.283308    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:14:09.296233    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:19:09.283572    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:19:09.297926    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:24:09.284176    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0717 15:24:09.300018    6635 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+Starting to serve on [::]:23333I0719 09:36:38.840134    5616 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0719 09:36:38.840418    5616 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0719 09:41:38.840987    5616 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0719 09:41:38.842540    5616 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0719 09:46:38.841712    5616 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0719 09:46:38.845324    5616 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+Starting to serve on [::]:23333I0720 11:15:56.897007    7614 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+Starting to serve on [::]:23333I0720 15:27:21.383524    5834 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0720 15:27:21.383712    5834 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+Starting to serve on [::]:23333I0720 15:51:43.157277    7629 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0720 15:51:43.157569    7629 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+Starting to serve on [::]:23333I0720 16:20:06.053278    6469 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0720 16:20:06.053498    6469 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+Starting to serve on [::]:23333I0721 10:26:00.572333    6331 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0721 10:26:00.572702    6331 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+Starting to serve on [::]:23333I0724 10:58:49.795425    8077 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0724 10:58:49.795664    8077 logs.go:41] httputil: ReverseProxy read error during body copy: unexpected EOF
+I0724 10:58:49.796907    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:50.798478    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:51.799844    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:52.801436    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:53.802953    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:54.804337    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:55.805907    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:56.807544    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:57.809071    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:58.810533    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:58:59.812050    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:59:00.819160    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:59:01.823904    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:59:02.825364    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0724 10:59:03.827104    8077 logs.go:41] http: proxy error: dial tcp 172.16.3.95:6443: getsockopt: connection refused
+I0726 17:20:54.005907    8077 logs.go:41] httputil: ReverseProxy read error during body copy: context canceled

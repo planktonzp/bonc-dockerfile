@@ -1,20 +1,20 @@
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: zookeeper
-#   namespace: dipper
-# spec:
-#   ports:
-#   - port: 2181
-#     name: client
-#   selector:
-#     app: zk
+apiVersion: v1
+kind: Service
+metadata:
+  name: zookeeper
+  namespace: testbonc
+spec:
+  ports:
+  - port: 2181
+    name: client
+  selector:
+    app: zk
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: zk-headless
-  namespace: dipper
+  namespace: testbonc
   labels:
     app: zk-headless
 spec:
@@ -23,8 +23,6 @@ spec:
     name: server
   - port: 3888
     name: leader-election
-  - port: 2181
-    name: client
   clusterIP: None
   selector:
     app: zk
@@ -33,7 +31,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zk-config
-  namespace: dipper
+  namespace: testbonc
 data:
   ensemble: "zk-0;zk-1;zk-2"
   jvm.heap: "2G"
@@ -48,7 +46,7 @@ apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
   name: zk-budget
-  namespace: dipper
+  namespace: testbonc
 spec:
   selector:
     matchLabels:
@@ -59,7 +57,7 @@ apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
   name: zk
-  namespace: dipper
+  namespace: testbonc
 spec:
   serviceName: zk-headless
   replicas: 3
@@ -94,6 +92,13 @@ spec:
           name: server
         - containerPort: 3888
           name: leader-election
+        resources:
+          limits:
+            cpu: 250m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 1Gi
         env:
         - name : ZK_ENSEMBLE
           valueFrom:
@@ -149,14 +154,14 @@ spec:
         #  exec:
         #    command:
         #    - "zkOk.sh"
-        #  initialDelaySeconds: 30
-        #  timeoutSeconds: 5
+        #  initialDelaySeconds: 45
+        #  timeoutSeconds: 15
         #livenessProbe:
         #  exec:
         #    command:
         #    - "zkOk.sh"
-        #  initialDelaySeconds: 30 
-        #  timeoutSeconds: 5
+        #  initialDelaySeconds: 45 
+        #  timeoutSeconds: 15
         volumeMounts:
         - name: zkdir
           mountPath: /var/lib/zookeeper
@@ -166,9 +171,10 @@ spec:
   volumeClaimTemplates:
   - metadata:
       name: zkdir
-      namespace: dipper
+      namespace: testbonc 
     spec:
       accessModes: 
+        - ReadWriteOnce
         - ReadOnlyMany
       resources:
         requests:

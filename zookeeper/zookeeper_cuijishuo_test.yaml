@@ -13,10 +13,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: zk-headless
-  namespace: dipper
+  name: zk
+  namespace: cuijishuo 
   labels:
-    app: zk-headless
+    app: zk
 spec:
   ports:
   - port: 2888
@@ -33,13 +33,13 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: zk-config
-  namespace: dipper
+  namespace: cuijishuo
 data:
   ensemble: "zk-0;zk-1;zk-2"
   jvm.heap: "2G"
-  tick: "2000"
-  init: "10"
-  sync: "5"
+  tick: "5000"
+  init: "20"
+  sync: "200"
   client.cnxns: "60"
   snap.retain: "3"
   purge.interval: "1"
@@ -48,7 +48,7 @@ apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
   name: zk-budget
-  namespace: dipper
+  namespace: cuijishuo
 spec:
   selector:
     matchLabels:
@@ -59,9 +59,9 @@ apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
   name: zk
-  namespace: dipper
+  namespace: cuijishuo
 spec:
-  serviceName: zk-headless
+  serviceName: zk
   replicas: 3
   template:
     metadata:
@@ -79,13 +79,14 @@ spec:
                   - key: "app"
                     operator: In
                     values: 
-                    - zk-headless
+                    - zk
               topologyKey: "kubernetes.io/hostname"
       containers:
       - name: k8szk
         imagePullPolicy: Always
         #image: gcr.io/google_samples/k8szk:v1
-        image: hub.bonc:5000/k8szk:v1
+        #image: hub.bonc:5000/test_k8szk:v1
+        image: hub.bonc:5000/test_stat:v1
         resources:
         ports:
         - containerPort: 2181
@@ -94,6 +95,13 @@ spec:
           name: server
         - containerPort: 3888
           name: leader-election
+        resources:
+          limits:
+            cpu: "6"
+            memory: 20Gi
+          requests:
+            cpu: "2"
+            memory: 3Gi
         env:
         - name : ZK_ENSEMBLE
           valueFrom:
@@ -166,11 +174,11 @@ spec:
   volumeClaimTemplates:
   - metadata:
       name: zkdir
-      namespace: dipper
+      namespace: cuijishuo 
     spec:
       accessModes: 
         - ReadOnlyMany
       resources:
         requests:
-          storage: 1Gi
-      storageClassName: ceph-rbd
+          storage: 5Gi
+      storageClassName: cuijishuo 

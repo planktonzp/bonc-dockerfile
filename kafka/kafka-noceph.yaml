@@ -61,19 +61,22 @@ spec:
         command:
         - sh
         - -c
-        - "./bin/kafka-server-start.sh config/server.properties --override broker.id=$(hostname | awk -F'-' '{print $2}') --override delete.topic.enable=true"
-        volumeMounts:
-        - name: kafkadir
-          mountPath: /opt/kafka/data
-  volumeClaimTemplates:
-  - metadata:
-      name: kafkadir
-      namespace: dipper
-    spec:
-      accessModes:
-        - ReadWriteOnce
-        - ReadOnlyMany
-      resources:
-        requests:
-          storage: 50Gi
-      storageClassName: ceph-rbd
+        - "mkdir -p /opt/kafka/data && ./bin/kafka-server-start.sh config/server.properties --override broker.id=$(hostname | awk -F'-' '{print $2}') --override delete.topic.enable=true"
+        env:
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xmx6G -Xms6G"
+        #volumeMounts:
+        #- name: kafkadir
+        #  mountPath: /opt/kafka/data
+#  volumeClaimTemplates:
+#  - metadata:
+#      name: kafkadir
+#      namespace: dipper
+#    spec:
+#      accessModes:
+#        - ReadWriteOnce
+#        - ReadOnlyMany
+#      resources:
+#        requests:
+#          storage: 50Gi
+#      storageClassName: ceph-rbd

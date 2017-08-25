@@ -1,0 +1,126 @@
+---
+# cluster Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: cephkafka2
+  namespace: cuijishuo 
+spec:
+  ports:
+  - port: 9092
+  selector:
+    app: cephkafka2
+---
+# cluster DNS
+apiVersion: v1
+kind: Service
+metadata:
+  name: cephbroker2
+  namespace: cuijishuo
+  labels:
+    app: cephbroker2
+spec:
+  ports:
+  - port: 9092
+  # [podname].broker.kafka.svc.cluster.local
+  clusterIP: None
+  selector:
+    app: cephkafka2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-server-properties
+  namespace: cuijishuo
+data:
+  server.properties: |+
+    broker.id=0
+    auto.create.topics.enable=false
+    delete.topic.enable=false
+    num.network.threads=3
+    num.io.threads=8
+    socket.send.buffer.bytes=102400
+    socket.receive.buffer.bytes=102400
+    socket.request.max.bytes=104857600
+    log.dirs=/opt/kafka/data/topics
+    num.partitions=1
+    num.recovery.threads.per.data.dir=1
+    log.retention.hours=-1
+    log.segment.bytes=1073741824
+    log.retention.check.interval.ms=300000
+    zookeeper.connect=zookeeper:2181
+    zookeeper.connection.timeout.ms=6000
+
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: cephkafka2
+  namespace: cuijishuo
+spec:
+  serviceName: "cephbroker2"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: cephkafka2
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - cephbroker2
+              topologyKey: "kubernetes.io/hostname"
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: cephbroker2
+        #image: solsson/kafka-persistent:0.10.1
+        #image: dipperroy/kafka:0.10.2.1-alpine
+        image: hub.bonc:5000/kafka:0.10.2.1-alpine
+        ports:
+        - containerPort: 9092
+        resources:
+          limits:
+            cpu: "1"
+            memory: 20Gi
+          requests:
+            cpu: "1"
+            memory: 3Gi
+        command:
+        - sh
+        - -c
+        - "./bin/kafka-server-start.sh custom_conf/server.properties --override broker.id=1$(hostname | awk -F'-' '{print $2}') --override delete.topic.enable=true --override zookeeper.connect=zk.cuijishuo:2181"
+        env:
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xmx2G -Xms2G"
+        volumeMounts:
+        - name: data
+          mountPath: /opt/cephkafka2/data
+        - name: conf
+          mountPath: /opt/kafka/custom_conf
+      volumes:
+      - name: "data"
+        persistentVolumeClaim:
+          claimName: "cephkafkadir2"
+      # Insert our pre-baked Redis configuration file into /conf/redis.conf
+      - name: "conf"
+        configMap:
+          name: kafka-server-properties
+          items:
+          - key: server.properties
+            path: server.properties
+  volumeClaimTemplates:
+  - metadata:
+      name: cephkafkadir2
+      namespace: cuijishuo
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: cuijishuo

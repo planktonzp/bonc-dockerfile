@@ -3,42 +3,42 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kafka
+  name: cephkafka
   namespace: dipper
 spec:
   ports:
   - port: 9092
   selector:
-    app: kafka
+    app: cephkafka
 ---
 # cluster DNS
 apiVersion: v1
 kind: Service
 metadata:
-  name: broker
+  name: cephbroker
   namespace: dipper
   labels:
-    app: broker
+    app: cephbroker
 spec:
   ports:
   - port: 9092
   # [podname].broker.kafka.svc.cluster.local
   clusterIP: None
   selector:
-    app: kafka
+    app: cephkafka
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: kafka
+  name: cephkafka
   namespace: dipper
 spec:
-  serviceName: "broker"
+  serviceName: "cephbroker"
   replicas: 3
   template:
     metadata:
       labels:
-        app: kafka
+        app: cephkafka
     spec:
       affinity:
         podAntiAffinity:
@@ -48,11 +48,11 @@ spec:
                   - key: "app"
                     operator: In
                     values:
-                    - broker
+                    - cephbroker
               topologyKey: "kubernetes.io/hostname"
       terminationGracePeriodSeconds: 10
       containers:
-      - name: broker
+      - name: cephbroker
         #image: solsson/kafka-persistent:0.10.1
         #image: dipperroy/kafka:0.10.2.1-alpine
         image: hub.bonc:5000/kafka:0.10.2.1-alpine
@@ -61,13 +61,13 @@ spec:
         command:
         - sh
         - -c
-        - "./bin/kafka-server-start.sh config/server.properties --override broker.id=$(hostname | awk -F'-' '{print $2}') --override delete.topic.enable=true"
+        - "mkdir -p /opt/cephkafka/data && ./bin/kafka-server-start.sh config/server.properties --override broker.id=$(hostname | awk -F'-' '{print $2}') --override delete.topic.enable=true --override zookeeper.connect=zk-headless:2181"
         volumeMounts:
-        - name: kafkadir
-          mountPath: /opt/kafka/data
+        - name: cephkafkadir
+          mountPath: /opt/cephkafka/data
   volumeClaimTemplates:
   - metadata:
-      name: kafkadir
+      name: cephkafkadir
       namespace: dipper
     spec:
       accessModes:

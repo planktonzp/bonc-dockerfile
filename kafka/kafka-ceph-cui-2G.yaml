@@ -3,42 +3,42 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: kafka
-  namespace: dipper
+  name: cephkafka2
+  namespace: cuijishuo 
 spec:
   ports:
   - port: 9092
   selector:
-    app: kafka
+    app: cephkafka2
 ---
 # cluster DNS
 apiVersion: v1
 kind: Service
 metadata:
-  name: broker
-  namespace: dipper
+  name: cephbroker2
+  namespace: cuijishuo
   labels:
-    app: broker
+    app: cephbroker2
 spec:
   ports:
   - port: 9092
   # [podname].broker.kafka.svc.cluster.local
   clusterIP: None
   selector:
-    app: kafka
+    app: cephkafka2
 ---
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: kafka
-  namespace: dipper
+  name: cephkafka2
+  namespace: cuijishuo
 spec:
-  serviceName: "broker"
+  serviceName: "cephbroker2"
   replicas: 3
   template:
     metadata:
       labels:
-        app: kafka
+        app: cephkafka2
     spec:
       affinity:
         podAntiAffinity:
@@ -48,32 +48,41 @@ spec:
                   - key: "app"
                     operator: In
                     values:
-                    - broker
+                    - cephbroker2
               topologyKey: "kubernetes.io/hostname"
       terminationGracePeriodSeconds: 10
       containers:
-      - name: broker
+      - name: cephbroker2
         #image: solsson/kafka-persistent:0.10.1
         #image: dipperroy/kafka:0.10.2.1-alpine
         image: hub.bonc:5000/kafka:0.10.2.1-alpine
         ports:
         - containerPort: 9092
+        resources:
+          limits:
+            cpu: "1"
+            memory: 20Gi
+          requests:
+            cpu: "1"
+            memory: 2Gi
         command:
         - sh
         - -c
-        - "./bin/kafka-server-start.sh config/server.properties --override broker.id=$(hostname | awk -F'-' '{print $2}') --override delete.topic.enable=true"
+        - " ./bin/kafka-server-start.sh config/server.properties --override broker.id=1$(hostname | awk -F'-' '{print $2}') --override delete.topic.enable=true --override zookeeper.connect=zk.cuijishuo:2181"
+        env:
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xmx2G -Xms2G"
         volumeMounts:
-        - name: kafkadir
+        - name: cephkafkadir2
           mountPath: /opt/kafka/data
   volumeClaimTemplates:
   - metadata:
-      name: kafkadir
-      namespace: dipper
+      name: cephkafkadir2
+      namespace: cuijishuo
     spec:
       accessModes:
         - ReadWriteOnce
-        - ReadOnlyMany
       resources:
         requests:
           storage: 50Gi
-      storageClassName: ceph-rbd
+      storageClassName: cuijishuo

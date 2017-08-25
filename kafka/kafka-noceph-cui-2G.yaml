@@ -1,0 +1,88 @@
+---
+# cluster Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: cephkafka
+  namespace: cuijishuo 
+spec:
+  ports:
+  - port: 9092
+  selector:
+    app: cephkafka
+---
+# cluster DNS
+apiVersion: v1
+kind: Service
+metadata:
+  name: cephbroker
+  namespace: cuijishuo
+  labels:
+    app: cephbroker
+spec:
+  ports:
+  - port: 9092
+  # [podname].broker.kafka.svc.cluster.local
+  clusterIP: None
+  selector:
+    app: cephkafka
+---
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: cephkafka
+  namespace: cuijishuo
+spec:
+  serviceName: "cephbroker"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: cephkafka
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - cephbroker
+              topologyKey: "kubernetes.io/hostname"
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: cephbroker
+        #image: solsson/kafka-persistent:0.10.1
+        #image: dipperroy/kafka:0.10.2.1-alpine
+        image: hub.bonc:5000/kafka:0.10.2.1-alpine
+        ports:
+        - containerPort: 9092
+        resources:
+          limits:
+            cpu: "1"
+            memory: 20Gi
+          requests:
+            cpu: "1"
+            memory: 3Gi
+        command:
+        - sh
+        - -c
+        - "mkdir -p /opt/kafka/data && ./bin/kafka-server-start.sh config/server.properties --override broker.id=$(hostname | awk -F'-' '{print $2}') --override delete.topic.enable=true --override zookeeper.connect=zk.cuijishuo:2181"
+        env:
+        - name: KAFKA_HEAP_OPTS
+          value: "-Xmx2G -Xms2G"
+#        volumeMounts:
+#        - name: cephkafkadir
+#          mountnPath: /opt/cephkafka/data
+#  volumeClaimTemplates:
+#  - metadata:
+#      name: cephkafkadir
+#      namespace: cuijishuo
+#    spec:
+#      accessModes:
+#        - ReadWriteOnce
+#      resources:
+#        requests:
+#          storage: 50Gi
+#      storageClassName: cuijishuo
