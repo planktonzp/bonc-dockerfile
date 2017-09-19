@@ -1,0 +1,94 @@
+
+name: 'etcd-2'
+
+data-dir: /opt/etcd/data        
+
+wal-dir: /opt/etcd/wal
+
+# snapshot-count: 10000
+
+# heartbeat-interval: 100
+
+# election-timeout: 1000
+
+# quota-backend-bytes: 0
+
+listen-peer-urls: http://172.16.3.82:2380
+
+listen-client-urls: http://172.16.3.82:2379
+
+# max-snapshots: 5
+
+# max-wals: 5
+
+# cors:
+
+initial-advertise-peer-urls: http://172.16.3.82:2380
+
+advertise-client-urls: http://172.16.3.82:2379
+
+# discovery:
+
+# discovery-fallback: 'proxy'
+
+# discovery-proxy:
+
+# discovery-srv:
+
+initial-cluster: etcd-0=http://172.16.3.84:2380,etcd-1=http://172.16.3.83:2380,etcd-2=http://172.16.3.82:2380,etcd-3=http://172.13.3.94:2380
+
+initial-cluster-token: 'rzp-test-cluster'
+
+initial-cluster-state: 'existing'
+
+# strict-reconfig-check: false
+
+# enable-v2: true
+
+# enable-pprof: true
+
+# proxy: 'off'
+
+# proxy-failure-wait: 5000
+
+# proxy-refresh-interval: 30000
+
+# proxy-dial-timeout: 1000
+
+# proxy-write-timeout: 5000
+
+# proxy-read-timeout: 0
+# 
+# client-transport-security:
+#   ca-file:
+
+#   cert-file:
+
+#   key-file:
+
+#   client-cert-auth: false
+
+#   trusted-ca-file:
+
+#   auto-tls: false
+
+# peer-transport-security:
+#   ca-file:
+
+#   cert-file:
+
+#   key-file:
+
+#   client-cert-auth: false
+
+#   trusted-ca-file:
+
+#   auto-tls: false
+
+# debug: false
+
+# log-package-levels:
+
+# force-new-cluster: false
+
+auto-compaction-retention: 1
