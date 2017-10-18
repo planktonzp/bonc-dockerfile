@@ -1,7 +1,7 @@
 
 name: 'etcd-2'
 
-data-dir: /opt/etcd/data        
+data-dir: /opt/etcd/data
 
 wal-dir: /opt/etcd/wal
 
