@@ -23,6 +23,7 @@ spec:
       - name: heapster
         #image: gcr.io/google_containers/heapster-amd64:v1.3.0
         image: hub.bonc:5000/jion/heapster:test-1.0.7
+        #image: 172.16.3.123:5000/jion/heapster:test-1.0.7
         #image: hub.bonc:5000/google_containers/heapster-amd64:v1.3.0
         imagePullPolicy: IfNotPresent
         command:
